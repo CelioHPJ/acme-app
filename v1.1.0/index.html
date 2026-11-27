@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACME App v1.1.0</title>
+  <style>
+    /* Variáveis: somente as cores de destaque mudam entre as releases. */
+    :root {
+      --accent: #10b981;
+      --accent-glow: #34d399;
+      --accent-rgb: 16, 185, 129;
+      --bg: #0b1020;
+      --text: #f1f5ff;
+      --muted: #bac7dc;
+      --card: rgba(255, 255, 255, 0.06);
+    }
+
+    /* Reset: medidas previsíveis e fontes locais, sem dependências. */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; font-size: 18px; line-height: 1.5; }
+    h1, h2 { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; font-weight: 800; letter-spacing: -0.02em; }
+    svg { display: block; flex-shrink: 0; }
+    a { color: inherit; }
+    .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+
+    /* Fundo: gradiente radial e grade de pontos desenhados com CSS. */
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.07) 1px, transparent 1.5px),
+        radial-gradient(ellipse at 10% 25%, rgba(var(--accent-rgb), 0.1), transparent 65%);
+      background-size: 26px 26px, 100% 100%;
+      color: var(--text);
+    }
+    .app {
+      width: min(100%, 1600px);
+      min-height: 100vh;
+      min-height: 100svh;
+      margin-inline: auto;
+      padding: 32px clamp(24px, 4vw, 64px);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .stage {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      align-items: center;
+      gap: clamp(28px, 4vw, 64px);
+    }
+
+    /* Hero: tipografia dominante e um brilho decorativo atrás do conteúdo. */
+    .hero { min-width: 0; position: relative; isolation: isolate; }
+    .hero::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: 300px;
+      height: 300px;
+      max-width: 100%;
+      top: 15%;
+      left: 0;
+      background: var(--accent);
+      filter: blur(120px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .release-label { display: flex; align-items: center; gap: 16px; color: var(--accent-glow); }
+    .release-label span {
+      padding: 6px 14px;
+      border: 1px solid rgba(var(--accent-rgb), 0.5);
+      border-radius: 999px;
+      background: rgba(var(--accent-rgb), 0.1);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+    .container-mark { width: 64px; height: 52px; }
+    .hero h1 { margin-top: 20px; font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.1; }
+    .version {
+      margin-block: 12px 20px;
+      font-size: clamp(4rem, 10vw, 8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      overflow-wrap: anywhere;
+      color: var(--accent-glow);
+      font-variant-numeric: tabular-nums;
+    }
+    @supports (background-clip: text) or (-webkit-background-clip: text) {
+      .version {
+        background: linear-gradient(120deg, #ffffff -20%, var(--accent-glow) 65%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+    }
+    .tagline { max-width: 34ch; font-size: clamp(21px, 2vw, 26px); color: var(--muted); }
+
+    /* Painel: superfície translúcida com contorno e desfoque discretos. */
+    .panel {
+      min-width: 0;
+      padding: clamp(24px, 2.4vw, 36px);
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+    }
+    .panel h2 { font-size: clamp(24px, 2.2vw, 30px); line-height: 1.25; }
+
+    /* Changelog: linhas espaçadas com checks vetoriais e etiqueta de novidade. */
+    .changelog { list-style: none; margin-top: 20px; }
+    .changelog li { display: flex; align-items: center; gap: 12px; padding-block: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .check { width: 24px; height: 24px; color: var(--accent-glow); }
+    .feature-name { flex: 1; min-width: 0; font-size: 22px; overflow-wrap: anywhere; }
+    .new-badge { padding: 4px 10px; border-radius: 999px; background: var(--accent); color: #06101c; font-size: 16px; font-weight: 800; }
+
+    /* Terminal: rótulos e valores técnicos em fonte monoespaçada. */
+    .terminal { margin-top: 24px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; background: rgba(3, 7, 18, 0.72); }
+    .terminal h3 { margin-bottom: 14px; color: var(--muted); font-size: 16px; font-weight: 600; }
+    .terminal dl { display: grid; gap: 10px; }
+    .terminal-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; }
+    .terminal dt { color: var(--muted); }
+    .terminal dd { min-width: 0; overflow-wrap: anywhere; }
+    .status { display: inline-flex; align-items: center; gap: 10px; }
+    .status-dot { width: 10px; height: 10px; flex-shrink: 0; border-radius: 50%; background: var(--accent-glow); animation: pulsar 2.4s ease-in-out infinite; }
+
+    /* Pipeline: quatro etapas concluídas, conectadas por uma linha contínua. */
+    .pipeline { border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 20px; }
+    .pipeline h2 { margin-bottom: 18px; font-size: 20px; }
+    .pipeline ol { display: flex; list-style: none; }
+    .pipeline li { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .pipeline li:not(:last-child)::after { content: ""; position: absolute; top: 21px; left: calc(50% + 28px); width: calc(100% - 56px); height: 2px; background: var(--accent); opacity: 0.6; }
+    .step-number { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: #06101c; font-weight: 800; }
+    .step-name { font-size: 18px; font-weight: 600; }
+    .pipeline li:last-child .step-number { box-shadow: 0 0 26px rgba(var(--accent-rgb), 0.4); }
+
+    /* Botão: gradiente, sombra colorida e foco de teclado visível. */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin-top: 22px; padding: 14px 28px; border-radius: 12px; background: linear-gradient(120deg, var(--accent), var(--accent-glow)); color: #06101c; font-size: 20px; font-weight: 800; text-decoration: none; box-shadow: 0 8px 24px rgba(var(--accent-rgb), 0.24); transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease; }
+    .btn svg { width: 22px; height: 22px; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 12px 32px rgba(var(--accent-rgb), 0.4); }
+    .btn:focus-visible { outline: 3px solid #ffffff; outline-offset: 5px; }
+
+    /* Rodapé: crédito da equipe, com tamanho mínimo de 16 pixels. */
+    .footer { text-align: center; color: var(--muted); font-size: 16px; }
+
+    /* Animações: entrada escalonada e pulso suave do indicador de status. */
+    .hero, .panel, .pipeline, .footer { animation: entrada 600ms ease-out both; }
+    .panel { animation-delay: 100ms; }
+    .pipeline { animation-delay: 200ms; }
+    .footer { animation-delay: 300ms; }
+    @keyframes entrada { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulsar { 0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.35); } 50% { box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0); } }
+
+    /* Responsivo: empilha colunas e adapta os detalhes a telas pequenas. */
+    @media (max-width: 899px) {
+      .app { gap: 36px; padding-block: 36px; }
+      .stage { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+      .version { max-width: 10ch; }
+      .panel { width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .app { padding-inline: 20px; }
+      .panel { padding: 20px; }
+      .terminal { padding: 16px; }
+      .terminal-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+      .changelog li { flex-wrap: wrap; }
+      .feature-name { font-size: 21px; }
+      .step-name { font-size: 16px; }
+      .btn { width: 100%; padding-inline: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .btn:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="stage">
+      <section class="hero" aria-labelledby="app-title">
+        <div class="release-label">
+          <svg class="container-mark" viewBox="0 0 64 52" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="29" width="27" height="19" rx="4"/>
+            <rect x="34" y="29" width="27" height="19" rx="4"/>
+            <rect x="18" y="6" width="27" height="19" rx="4"/>
+            <path d="M11 35v7m10-7v7m21-7v7m10-7v7M26 12v7m11-7v7"/>
+          </svg>
+          <span class="mono">RELEASE</span>
+        </div>
+        <h1 id="app-title">ACME App</h1>
+        <p class="version">Versão 1.1.0</p>
+        <p class="tagline">Empresa ACME · Outsourcing de Software</p>
+      </section>
+
+      <section class="panel" aria-labelledby="changelog-title">
+        <h2 id="changelog-title">Novidades desta release</h2>
+        <ul class="changelog">
+          <li>
+            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+            <span class="feature-name">Página inicial</span>
+          </li>
+          <li>
+            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+            <span class="feature-name">Botão de contato</span>
+            <span class="new-badge">NOVO</span>
+          </li>
+        </ul>
+
+        <a href="#" class="btn">
+          Fale conosco
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </a>
+
+        <section class="terminal mono" aria-labelledby="technical-title">
+          <h3 id="technical-title">Detalhes técnicos</h3>
+          <dl>
+            <div class="terminal-row"><dt>Imagem:</dt><dd>acme-app:1.1.0</dd></div>
+            <div class="terminal-row"><dt>Servidor:</dt><dd>nginx:alpine</dd></div>
+            <div class="terminal-row"><dt>Porta:</dt><dd>80</dd></div>
+            <div class="terminal-row">
+              <dt>Status:</dt>
+              <dd><span class="status"><span class="status-dot" aria-hidden="true"></span>online</span></dd>
+            </div>
+          </dl>
+        </section>
+      </section>
+    </div>
+
+    <section class="pipeline" aria-labelledby="pipeline-title">
+      <h2 id="pipeline-title">Pipeline de release</h2>
+      <ol aria-label="Todas as etapas concluídas">
+        <li><span class="step-number mono">1</span><span class="step-name">Build</span></li>
+        <li><span class="step-number mono">2</span><span class="step-name">Teste</span></li>
+        <li><span class="step-number mono">3</span><span class="step-name">Release</span></li>
+        <li><span class="step-number mono">4</span><span class="step-name">Deploy</span></li>
+      </ol>
+    </section>
+
+    <footer class="footer">Equipe 4 · Gerenciamento de Releases · Docker + Nginx</footer>
+  </main>
+</body>
+</html>
